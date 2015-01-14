@@ -4,7 +4,6 @@ var request = require('superagent')
   , should = chai.should();
 var url = 'https://localhost:8080';
 var token = '66LOHAiB8Zeod1bAeLYW';
-var ifMatch = 1421242469472326;
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 
@@ -18,7 +17,7 @@ describe('Subkit tests.', function(){
         .end(function(res){
           res.status.should.be.equal(200);
           res.body.should.have.property('results').and.be.an('array');
-          done()
+          done();
         });
     });
     it('#GET with wrong "X-Auth-Token" header should response 401', function(done){
@@ -28,7 +27,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
     it('#GET without "X-Auth-Token" header should response 401', function(done){
@@ -37,7 +36,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
   });
@@ -51,7 +50,7 @@ describe('Subkit tests.', function(){
         .end(function(res){
           res.status.should.be.equal(200);
           res.body.should.have.property('results').and.be.an('array');
-          done()
+          done();
         });
     });
     it('#GET with wrong "X-Auth-Token" header should response 401', function(done){
@@ -61,7 +60,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
     it('#GET without "X-Auth-Token" header should response 401', function(done){
@@ -70,22 +69,37 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
   });
 
   describe('#Get a document `Scores - ec8ffdf0-9b04-11e4-89d3-123b93f75cba`', function(){
-    it('#GET should retrieve document with `results` parameter in the response', function(done){
+    it('#GET should retrieve document with `$key` parameter and `ec8ffdf0-9b04-11e4-89d3-123b93f75cba` in the response', function(done){
       request
-        .get(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores/Scores/tmp')
+        .send({ foo: 'bar' })
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(){});
+
+      //async operations
+      setTimeout(function(){
+        request
+        .get(url + '/stores/Scores/tmp')
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(200);
-          res.body.should.have.property('results').and.be.an('array');
-          done()
+          res.body.should.have.property('$key').and.be.equal('tmp');
+          res.body.should.have.property('$name').and.be.equal('Scores');
+          res.body.should.have.property('$store').and.be.equal('Scores');
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$payload').and.exist;
+          done();
         });
+      }, 20); //20ms write/read latency + eventual consistency
     });
     it('#GET with wrong "X-Auth-Token" header should response 401', function(done){
       request
@@ -94,7 +108,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
     it('#GET without "X-Auth-Token" header should response 401', function(done){
@@ -103,7 +117,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
   });
@@ -123,7 +137,7 @@ describe('Subkit tests.', function(){
           res.status.should.be.equal(201);
           res.body.should.have.property('message').and.be.equal('created');
           res.body.should.have.property('key').and.exist;
-          done()
+          done();
         });
     });
     it('#POST with wrong "X-Auth-Token" header should response 401', function(done){
@@ -138,7 +152,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
     it('#POST without "X-Auth-Token" header should response 401', function(done){
@@ -152,11 +166,10 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
     it('#POST without `Scores` path parameter should response 400', function(done){
-      // @todo whether it should response 400 or 405
       request
         .post(url + '/stores')
         .send({
@@ -164,14 +177,14 @@ describe('Subkit tests.', function(){
           'playerName': "Karl",
           'cheatMode': false
         })
+        .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(405);
-          done()
+          done();
         });
     });
     it('#POST with space char in `Scores` path parameter should response 400', function(done){
-      // @todo whether it should response 400 or 405
       request
         .post(url + '/stores/Game Scores')
         .send({
@@ -179,14 +192,14 @@ describe('Subkit tests.', function(){
           'playerName': "Karl",
           'cheatMode': false
         })
+        .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(401);
-          done()
+          res.status.should.be.equal(400);
+          done();
         });
     });
-    it('#POST with special chars should succeed', function(done){
-      // @todo whether it should succeed or response with some other error code
+    it('#POST with special chars should response 400', function(done){
       request
         .post(url + '/stores/Scores*')
         .send({
@@ -197,10 +210,8 @@ describe('Subkit tests.', function(){
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(201);
-          res.body.should.have.property('message').and.be.equal('created');
-          res.body.should.have.property('key').and.exist;
-          done()
+          res.status.should.be.equal(400);
+          done();
         });
     });
   });
@@ -220,7 +231,7 @@ describe('Subkit tests.', function(){
           res.status.should.be.equal(201);
           res.body.should.have.property('message').and.be.equal('created');
           res.body.should.have.property('key').and.be.equal('ec8ffdf0-9b04-11e4-89d3-123b93f75cba');
-          done()
+          done();
         });
     });
     it('#POST with wrong "X-Auth-Token" header should response 401', function(done){
@@ -235,7 +246,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
     it('#POST without "X-Auth-Token" header should response 401', function(done){
@@ -249,26 +260,25 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
-    it('#POST without `Scores` path parameter should response 400', function(done){
-      // @todo whether it should response 400 or 401
+    it('#POST without path parameter should response 405 `Method not allowed`', function(done){
       request
-        .post(url + '/stores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores')
         .send({
           'score': 1876,
           'playerName': "Karl",
           'cheatMode': false
         })
+        .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
-          done()
+          res.status.should.be.equal(405);
+          done();
         });
     });
-    it('#POST with space char in `Scores` path parameter should response 400', function(done){
-      // @todo whether it should response 400 or 401
+    it('#POST with space char in store name should response 400', function(done){
       request
         .post(url + '/stores/Game Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
         .send({
@@ -276,16 +286,16 @@ describe('Subkit tests.', function(){
           'playerName': "Karl",
           'cheatMode': false
         })
+        .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
-          done()
+          res.status.should.be.equal(400);          
+          done();
         });
     });
-    it('#POST with special chars should response 400', function(done){
-      // @todo whether it should response 400 or 201
+    it('#POST with special chars in store name should response 400', function(done){
       request
-        .post(url + '/stores/Game Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores/Game^Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
         .send({
           'score': '*18*76/*',
           'playerName': "/Karl**",
@@ -295,27 +305,55 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(400);
-          done()
+          done();
         });
     });
+    it('#POST with space char in key name should response 400', function(done){
+      request
+        .post(url + '/stores/Scores/ec8ffdf0-9b04 11e4 89d3-123b93f75cba')
+        .send({
+          'score': 1876,
+          'playerName': "Karl",
+          'cheatMode': false
+        })
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);          
+          done();
+        });
+    });    
+    it('#POST with special chars in key name should response 400', function(done){
+      request
+        .post(url + '/stores/Scores/ec8ffdf0^9b04-11e4^89d3-123b93f75cba')
+        .send({
+          'score': '*18*76/*',
+          'playerName': "/Karl**",
+          'cheatMode': '**/'
+        })
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);
+          done();
+        });
+    }); 
   });
 
   describe('#Update an existing document in `Scores` store', function(){
-    // @todo returns response 500
     it('#PUT with right token should succeed', function(done){
       request
-        .put(url + '/stores/Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
         .send({
-          'score': 1876,
+          'score': 18786,
           'playerName': "Karl",
           'cheatMode': true
         })
         .set('X-Auth-Token', token)
-        .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(202);
-          done()
+          done();
         });
     });
     it('#PUT with wrong "X-Auth-Token" header should response 401', function(done){
@@ -327,11 +365,10 @@ describe('Subkit tests.', function(){
           'cheatMode': true
         })
         .set('X-Auth-Token', 'wrong_token')
-        .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
     it('#PUT without "X-Auth-Token" header should response 401', function(done){
@@ -342,15 +379,13 @@ describe('Subkit tests.', function(){
           'playerName': "Karl",
           'cheatMode': true
         })
-        .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
-    it('#PUT without `Scores` path parameter should response 400', function(done){
-      // @todo whether it should response 400 or 405
+    it('#PUT without `Scores` path parameter should response 405', function(done){
       request
         .put(url + '/stores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
         .send({
@@ -359,15 +394,13 @@ describe('Subkit tests.', function(){
           'cheatMode': true
         })
         .set('X-Auth-Token', token)
-        .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
-          done()
+          res.status.should.be.equal(405);
+          done();
         });
     });
-    it('#PUT with space char in `Scores` path parameter should response 400', function(done){
-      // @todo whether it should response 400 or 405
+    it('#PUT with space char in `Scores` path parameter should response 405', function(done){
       request
         .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
         .send({
@@ -376,37 +409,44 @@ describe('Subkit tests.', function(){
           'cheatMode': true
         })
         .set('X-Auth-Token', token)
-        .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
-          done()
+          res.status.should.be.equal(405);
+          done();
         });
     });
     it('#PUT with another non-existing document key should response 404 Not found', function(done){
-      // @todo whether it should response 404 or 405
       request
-        .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123bg3f5daba')
+        .put(url + '/stores/Scores/XXX')
         .send({
           'score': 1876,
           'playerName': "Karl",
           'cheatMode': true
         })
         .set('X-Auth-Token', token)
-        .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(404);
-          done()
+          done();
         });
     });
   });
 
   describe('#Conditional update of an existing document in `Scores`store', function(){
-    // @todo returns response 500
+    var ifMatch = 0;
+    beforeEach(function(done){
+      request
+        .get(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .set('X-Auth-Token', token)
+        .accept('json')        
+        .end(function(res){
+          ifMatch = res.body.$version;
+          done();
+        });
+    });
     it('#PUT with right token should succeed', function(done){
       request
-        .put(url + '/stores/Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -417,7 +457,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(202);
-          done()
+          done();
         });
     });
     it('#PUT with wrong "X-Auth-Token" header should response 401', function(done){
@@ -433,7 +473,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
     it('#PUT without "X-Auth-Token" header should response 401', function(done){
@@ -448,11 +488,10 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(401);
-          done()
+          done();
         });
     });
-    it('#PUT without `Scores` path parameter should response 400', function(done){
-      // @todo whether it should response 400 or 405
+    it('#PUT without `Scores` path parameter should response 405', function(done){
       request
         .put(url + '/stores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
         .send({
@@ -464,12 +503,11 @@ describe('Subkit tests.', function(){
         .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
-          done()
+          res.status.should.be.equal(405);
+          done();
         });
     });
-    it('#PUT with space char in `Scores` path parameter should response 400', function(done){
-      // @todo whether it should response 400 or 405
+    it('#PUT with space char in `Scores` path parameter should response 405', function(done){
       request
         .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
         .send({
@@ -481,14 +519,13 @@ describe('Subkit tests.', function(){
         .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
-          done()
+          res.status.should.be.equal(405);
+          done();
         });
     });
     it('#PUT with another non-existing document key should response 404 Not found', function(done){
-      // @todo whether it should response 404 or 405
       request
-        .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123bg3f5daba')
+        .put(url + '/stores/Scores/1c9f4c3e-86bb-11e4-b116-123bg3f5dXXX')
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -499,64 +536,58 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(404);
-          done()
+          done();
         });
     });
-    it('#PUT with "If-Match" < document.$version, the document should be updated and the response body should contain the updated values', function(done){
-      // @todo it should not response 405. Whether response body should contain updated params or results[] array?
+    it('#PUT with "If-Match" < document.$version should response with 412 - Version conflict', function(done){
       request
-        .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123bg3f5daba')
+        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
         .send({
-          'score': 1876,
+          'score': 12276,
           'playerName': "Karl",
           'cheatMode': true
         })
         .set('X-Auth-Token', token)
-        .set('If-Match', ifMatch-1) // the last digit is less by 1
-        .accept('json')
-        .end(function(res){
-          res.status.should.be.equal(202);
-          res.body.should.have.property('score').and.be.equal(1876);
-          res.body.should.have.property('playerName').and.be.equal("Karl");
-          res.body.should.have.property('cheatMode').and.be.equal(true);
-          done()
-        });
-    });
-    it('#PUT with "If-Match" = document.$version, the document should be updated and the response body should contain the updated values', function(done){
-      // @todo it should not response 405. Whether response body should contain updated params or results[] array?
-      request
-        .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123bg3f5daba')
-        .send({
-          'score': 1876,
-          'playerName': "Karl",
-          'cheatMode': true
-        })
-        .set('X-Auth-Token', token)
-        .set('If-Match', ifMatch) // the last digit is correct
-        .accept('json')
-        .end(function(res){
-          res.status.should.be.equal(202);
-          res.body.should.have.property('score').and.be.equal(1876);
-          res.body.should.have.property('playerName').and.be.equal("Karl");
-          res.body.should.have.property('cheatMode').and.be.equal(true);
-          done()
-        });
-    });
-    it('#PUT with "If-Match" > document.$version, the document should be updated and the response body should contain the updated values', function(done){
-      // @todo it should not response 405. Whether response body should contain updated params or results[] array?
-      request
-        .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123bg3f5daba')
-        .send({
-          'score': 1876,
-          'playerName': "Karl",
-          'cheatMode': true
-        })
-        .set('X-Auth-Token', token)
-        .set('If-Match', ifMatch+1) // the last digit is greater by 1
+        .set('If-Match', ifMatch-1)
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(412);
-          done()
+          res.body.should.have.property('message').and.be.equal('Version conflict.');
+          done();
+        });
+    });
+    it('#PUT with "If-Match" = document.$version, the document should be updated and the response body should contain the updated values', function(done){
+      request
+        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .send({
+          'score': 1876,
+          'playerName': "Karl",
+          'cheatMode': true
+        })
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('update accepted');
+          done();
+        });
+    });
+    it('#PUT with "If-Match" > document.$version, the document should be updated and the response body should contain the updated values', function(done){
+      request
+        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .send({
+          'score': 1876,
+          'playerName': "Karl",
+          'cheatMode': true
+        })
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch+1)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('update accepted');
+          done();
         });
     });
   });
