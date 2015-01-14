@@ -2,48 +2,62 @@ var request = require('superagent')
   , chai = require('chai')
   , expect = chai.expect
   , should = chai.should();
+var url = 'https://localhost:8080';
+var token = '66LOHAiB8Zeod1bAeLYW';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-
-describe('Trial task tests', function(){
-  describe('#success test for GET', function(){
-    it('GET request should succeed', function(){
+describe('Trial task tests.', function(){
+  describe('Get all stores', function(){
+    it('#GET right path with right token should succeed', function(done){
       request
-        .get('https://localhost:8080/stores/demo')
+        .get(url + '/stores')
+        .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(200).or.be.equal(201);
-          res.body.should.have.ownProperty('hello');
-          res.body.hello.should.be.equal('world');
+          res.status.should.be.equal(200);
+          res.body.should.have.property('results').and.be.an('array');
+          done()
         });
     });
-    it('GET request of non-existing URL should succeed with error code', function(){
+    it('#GET with wrong "X-Auth-Token" header should response 401', function(done){
       request
-        .get('https://localhost:8080/stores/demo_')
+        .get(url + '/stores')
+        .set('X-Auth-Token', 'wrong_token')
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(404);
+          res.status.should.be.equal(401);
+          done()
         });
     });
-    it('GET request with parameter should succeed', function(){
+    it('#GET without "X-Auth-Token" header should response 401', function(done){
       request
-        .get('https://localhost:8080/stores/demo')
-        .query({hello: 'foo'})
+        .get(url + '/stores')
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(200).or.be.equal(201);
-          res.body.should.have.ownProperty('hello');
-          res.body.hello.should.be.equal('foo');
+          res.status.should.be.equal(401);
+          done()
         });
     });
-    it('POST request should succeed', function(){
+    it('#GET wrong path with right token should response 400', function(done){
       request
-        .post('https://localhost:8080/stores/demo')
-        .query({foo: 'bar'})
+        .get(url + '/foo')
+        .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(201);
-          res.body.should.have.ownProperty('message');
-          res.body.message.should.be.equal('created');
+          res.status.should.be.equal(405);
+          done()
+        });
+    });
+    it('#GET wrong path with right token should response 400', function(done){
+      request
+        .get(url + '/stores')
+        .set('X-Auth-Token', token)
+        .set(':version', 0)
+        .set('Content-Length', 0)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);
+          done()
         });
     });
   });
