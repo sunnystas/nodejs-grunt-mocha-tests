@@ -17,12 +17,10 @@
   "homepage": "",
   "dependencies": {
     "chai": "^1.10.0",
+    "grunt": "^0.4.5",
     "grunt-mocha-test": "^0.12.6",
     "mocha": "^2.1.0",
     "superagent": "^0.21.0"
   },
-  "devDependencies": {
-    "install": "^0.1.8",
-    "mocha": "*"
-  }
+  "devDependencies": {}
 }
