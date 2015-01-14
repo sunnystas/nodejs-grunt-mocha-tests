@@ -15,10 +15,14 @@
   "author": "StanislavRomanov <sunnystas@gmail.com>",
   "license": "MIT",
   "homepage": "",
-  "dependencies": {},
+  "dependencies": {
+    "chai": "^1.10.0",
+    "grunt-mocha-test": "^0.12.6",
+    "mocha": "^2.1.0",
+    "superagent": "^0.21.0"
+  },
   "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-js-test": "^1.5.1",
+    "install": "^0.1.8",
     "mocha": "*"
   }
 }

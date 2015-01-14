@@ -1,21 +1,25 @@
 'use strict';
 
-module.exports = function (grunt) {
+module.exports = function(grunt) {
 
-  // Project configuration.
+  // Add the grunt-mocha-test tasks.
+  grunt.loadNpmTasks('grunt-mocha-test');
+
   grunt.initConfig({
-    'js-test': {
-      options: {
-        pattern: 'test/*.js'
+    // Configure a mochaTest task
+    mochaTest: {
+      test: {
+        options: {
+          reporter: 'spec',
+          //captureFile: 'results.txt', // Optionally capture the reporter output to a file
+          quiet: false, // Optionally suppress output to standard out (defaults to false)
+          clearRequireCache: false // Optionally clear the require cache before running tests (defaults to false)
+        },
+        src: ['test/*.js']
       }
     }
   });
 
-  // Actually load grunt-js-test
-  grunt.loadNpmTasks('grunt-js-test');
-  // grunt.loadTasks('./tasks');
+  grunt.registerTask('default', 'mochaTest');
 
-  // By default, run all your tests
-  grunt.registerTask('default', ['js-test']);
-
-};
+}
