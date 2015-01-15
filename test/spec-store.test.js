@@ -352,6 +352,7 @@ describe('Subkit tests.', function(){
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
+          res.body.should.have.property('message').and.be.equal('update accepted');
           res.status.should.be.equal(202);
           done();
         });
@@ -457,6 +458,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('update accepted');
           done();
         });
     });
@@ -491,7 +493,7 @@ describe('Subkit tests.', function(){
           done();
         });
     });
-    it('#PUT without `Scores` path parameter should response 405', function(done){
+    it('#PUT without `Scores` path parameter should response 400', function(done){
       request
         .put(url + '/stores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
         .send({
@@ -503,11 +505,11 @@ describe('Subkit tests.', function(){
         .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(405);
+          res.status.should.be.equal(400);
           done();
         });
     });
-    it('#PUT with space char in `Scores` path parameter should response 405', function(done){
+    it('#PUT with space char in `Scores` path parameter should response 400', function(done){
       request
         .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
         .send({
@@ -519,7 +521,7 @@ describe('Subkit tests.', function(){
         .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(405);
+          res.status.should.be.equal(400);
           done();
         });
     });
