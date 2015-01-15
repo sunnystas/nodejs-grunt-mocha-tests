@@ -441,6 +441,7 @@ describe('Subkit tests.', function(){
         .set('X-Auth-Token', token)
         .accept('json')        
         .end(function(res){
+          res.body.should.have.property('$version');
           ifMatch = res.body.$version;
           done();
         });
@@ -493,7 +494,7 @@ describe('Subkit tests.', function(){
           done();
         });
     });
-    it('#PUT without `Scores` path parameter should response 400', function(done){
+    it('#PUT without `Scores` path parameter should response 405', function(done){
       request
         .put(url + '/stores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
         .send({
@@ -505,11 +506,11 @@ describe('Subkit tests.', function(){
         .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
+          res.status.should.be.equal(405);
           done();
         });
     });
-    it('#PUT with space char in `Scores` path parameter should response 400', function(done){
+    it('#PUT with space char in `Scores` path parameter should response 405', function(done){
       request
         .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
         .send({
@@ -521,7 +522,7 @@ describe('Subkit tests.', function(){
         .set('If-Match', ifMatch)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
+          res.status.should.be.equal(405);
           done();
         });
     });
@@ -594,4 +595,232 @@ describe('Subkit tests.', function(){
     });
   });
 
+  describe('#Delete documents', function(){
+    var ifMatch = 0;
+    var testDocKey;
+    beforeEach(function(done){
+      request
+        .post(url + '/stores/Scores')
+        .send({
+          'score': 1876,
+          'playerName': "Karl",
+          'cheatMode': false
+        })
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(201);
+          testDocKey = res.body.key;
+          done();
+        });
+    });
+    it('#DELETE should repsponse 202 and { "message":"delete accepted" }', function(done){
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('delete accepted');
+          done();
+        });
+    });
+    it('#DELETE with another -not existing- document key should response 202 and { "message":"delete accepted" }', function(done){
+      request
+        .del(url + '/stores/Scores/c96a5916-46de-4c5d-959a-07395f1c5025')
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('delete accepted');
+          done();
+        });
+    });
+    it('#DELETE without "X-Auth-Token" header should response 401', function(done){
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(401);
+          done();
+        });
+    });
+    it('#DELETE with wrong "X-Auth-Token" header should response 401', function(done){
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', 'wrong token')
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(401);
+          done();
+        });
+    });
+    it('#DELETE without `Scores` path parameter should response 400', function(done){
+      request
+        .del(url + '/stores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);
+          done();
+        });
+    });
+    it('#DELETE with space char in `Scores` path parameter (e.g. `Game Scores`) should response 400', function(done){
+      request
+        .del(url + '/stores/Game Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);
+          done();
+        });
+    });
+    it('#DELETE with space char in `Scores` path parameter (e.g. `Game Scores`) should response 400', function(done){
+      request
+        .del(url + '/stores/Game%20Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);
+          done();
+        });
+    });
+  });
+
+  describe('#Conditional delete documents', function(){
+    var ifMatch = 0;
+    var testDocKey;
+    beforeEach(function(done){
+      request
+        .post(url + '/stores/Scores')
+        .send({
+          'score': 1876,
+          'playerName': "Karl",
+          'cheatMode': false
+        })
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(201);
+          testDocKey = res.body.key;
+          ifMatch = res.body.$version;
+          done();
+        });
+    });
+    it('#DELETE should response 202 and { "message":"delete accepted" }', function(done){
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('delete accepted');
+          done();
+        });
+    });
+    it('#DELETE with another -not existing- document key should response 202 and { "message":"delete accepted" }', function(done){
+      request
+        .del(url + '/stores/Scores/b6ce69ae-9cd0-11e4-89d3-123b93f75cba')
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('delete accepted');
+          done();
+        });
+    });
+    it('#DELETE with wrong "X-Auth-Token" header should response 401', function(done){
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', 'wrong_token')
+        .set('If-Match', ifMatch)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(401);
+          done();
+        });
+    });
+    it('#DELETE without "X-Auth-Token" header should response 401', function(done){
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('If-Match', ifMatch)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(401);
+          done();
+        });
+    });
+    it('#DELETE without `Scores` path parameter should reponse 400', function(done){
+      request
+        .del(url + '/stores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);
+          done();
+        });
+    });
+    it('#DELETE with space char in `Scores` path parameter should response 400', function(done){
+      request
+        .del(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);
+          done();
+        });
+    });
+    it('#DELETE with another -not existing- document key should response 404-Not found', function(done){
+      // @todo contradict previous #DELETE with another -not existing- document key should response 202 and { "message":"delete accepted" }
+      request
+        .del(url + '/stores/Scores/b6ce69ae-9cd0-11e4-89d3-123b93f75cba')
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(404);
+          done();
+        });
+    });
+    it('#DELETE the document with with "If-Match" < document.$version, the document version should be updated and the response body should contain the updated values', function(done){
+      request
+        // @todo Here and in other places. What does mean "the response body should contain the updated values"? Because body does not contain nothing except message.
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch-1)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('delete accepted');
+          done();
+        });
+    });
+    it('#DELETE the document with with "If-Match" = document.$version, the document version should be updated and the response body should contain the updated values', function(done){
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('delete accepted');
+          done();
+        });
+    });
+    it('#DELETE the document with with "If-Match" > document.$version, the document version should response 412-Precondition Failed', function(done){
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .set('If-Match', ifMatch+1)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(412);
+          done();
+        });
+    });
+  });
 });
