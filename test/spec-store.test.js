@@ -74,24 +74,27 @@ describe('Subkit tests.', function(){
     });
   });
 
-  describe('#Get a document `Scores - ec8ffdf0-9b04-11e4-89d3-123b93f75cba`', function(){
-    it('#GET should retrieve document with `$key` parameter and `ec8ffdf0-9b04-11e4-89d3-123b93f75cba` in the response', function(done){
+  describe('#Get a document in `Scores`', function(){
+    it('#GET should retrieve a document', function(done){
+      var key;
       request
-        .post(url + '/stores/Scores/tmp')
+        .post(url + '/stores/Scores')
         .send({ foo: 'bar' })
         .set('X-Auth-Token', token)
         .accept('json')
-        .end(function(){});
+        .end(function(res){
+          key = res.body.key;
+        });
 
       //async operations
       setTimeout(function(){
         request
-        .get(url + '/stores/Scores/tmp')
+        .get(url + '/stores/Scores/'+key)
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(200);
-          res.body.should.have.property('$key').and.be.equal('tmp');
+          res.body.should.have.property('$key').and.be.equal(key);
           res.body.should.have.property('$name').and.be.equal('Scores');
           res.body.should.have.property('$store').and.be.equal('Scores');
           res.body.should.have.property('$version').and.exist;
@@ -99,7 +102,7 @@ describe('Subkit tests.', function(){
           res.body.should.have.property('$payload').and.exist;
           done();
         });
-      }, 20); //20ms write/read latency + eventual consistency
+      }, 100); //100ms write/read latency + eventual consistency
     });
     it('#GET with wrong "X-Auth-Token" header should response 401', function(done){
       request
