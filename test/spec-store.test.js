@@ -795,4 +795,14 @@ describe('Subkit tests.', function(){
         });
     });
   });
+  // clean up the storage in order it to work properly in future tests
+  after(function(done) {
+    request
+      .del(url + '/stores/Scores')
+      .set('X-Auth-Token', token)
+      .accept('json')
+      .end(function(){
+        done();
+      });
+  });
 });
