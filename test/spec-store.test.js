@@ -83,7 +83,12 @@ describe('Subkit tests.', function(){
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          key = res.body.key;
+          res.status.should.be.equal(201);
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;
+          key = res.body.$key;
         });
 
       //async operations
@@ -102,7 +107,7 @@ describe('Subkit tests.', function(){
           res.body.should.have.property('$payload').and.exist;
           done();
         });
-      }, 100); //100ms write/read latency + eventual consistency
+      }, 20); //20ms write/read latency
     });
     it('#GET with wrong "X-Auth-Token" header should response 401', function(done){
       request
@@ -139,7 +144,10 @@ describe('Subkit tests.', function(){
         .end(function(res){
           res.status.should.be.equal(201);
           res.body.should.have.property('message').and.be.equal('created');
-          res.body.should.have.property('key').and.exist;
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;
           done();
         });
     });
@@ -233,7 +241,11 @@ describe('Subkit tests.', function(){
         .end(function(res){
           res.status.should.be.equal(201);
           res.body.should.have.property('message').and.be.equal('created');
-          res.body.should.have.property('key').and.be.equal('ec8ffdf0-9b04-11e4-89d3-123b93f75cba');
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;
+          res.body.should.have.property('$key').and.be.equal('ec8ffdf0-9b04-11e4-89d3-123b93f75cba');
           done();
         });
     });
@@ -355,8 +367,12 @@ describe('Subkit tests.', function(){
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          res.body.should.have.property('message').and.be.equal('update accepted');
           res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('update accepted');
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;
           done();
         });
     });
@@ -463,6 +479,10 @@ describe('Subkit tests.', function(){
         .end(function(res){
           res.status.should.be.equal(202);
           res.body.should.have.property('message').and.be.equal('update accepted');
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;          
           done();
         });
     });
@@ -576,6 +596,10 @@ describe('Subkit tests.', function(){
         .end(function(res){
           res.status.should.be.equal(202);
           res.body.should.have.property('message').and.be.equal('update accepted');
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;          
           done();
         });
     });
@@ -593,6 +617,10 @@ describe('Subkit tests.', function(){
         .end(function(res){
           res.status.should.be.equal(202);
           res.body.should.have.property('message').and.be.equal('update accepted');
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;          
           done();
         });
     });
@@ -613,7 +641,7 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(201);
-          testDocKey = res.body.key;
+          testDocKey = res.body.$key;
           done();
         });
     });
@@ -695,7 +723,11 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(201);
-          testDocKey = res.body.key;
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;          
+          testDocKey = res.body.$key;
           
           setTimeout(function(){
 
@@ -759,7 +791,6 @@ describe('Subkit tests.', function(){
         });
     });
     it('#DELETE  with "If-Match" < document.$version should response with 412 - Version conflict', function(done){
-
       request
         .del(url + '/stores/Scores/' + testDocKey)
         .set('X-Auth-Token', token)
@@ -801,7 +832,8 @@ describe('Subkit tests.', function(){
       .del(url + '/stores/Scores')
       .set('X-Auth-Token', token)
       .accept('json')
-      .end(function(){
+      .end(function(res){
+        res.status.should.be.equal(202);
         done();
       });
   });
