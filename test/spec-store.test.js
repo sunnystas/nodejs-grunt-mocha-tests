@@ -770,7 +770,7 @@ describe('Subkit tests.', function(){
           done();
         });
     });
-    it('#DELETE the document with with "If-Match" = document.$version, the document version should be updated and the response body should contain the updated values', function(done){
+    it('#DELETE the document with with "If-Match" = document.$version, the document version should be deleted', function(done){
       request
         .del(url + '/stores/Scores/' + testDocKey)
         .set('X-Auth-Token', token)
@@ -782,7 +782,7 @@ describe('Subkit tests.', function(){
           done();
         });
     });
-    it('#DELETE the document with with "If-Match" > document.$version, the document version should be updated and the response body should contain the updated values', function(done){
+    it('#DELETE the document with with "If-Match" > document.$version, the document version should be deleted', function(done){
       request
         .del(url + '/stores/Scores/' + testDocKey)
         .set('X-Auth-Token', token)

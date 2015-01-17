@@ -84,13 +84,13 @@ describe('Store query tests:', function(){
           done();
         });
     });
-    it('#GET with special chars (except _,-,@,!) in store should response 400', function(done){
+    it('#GET with special chars (except _,-,@,!) in store should response 405', function(done){
       request
         .get(url + '/sto*r^es/Scores')
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
+          res.status.should.be.equal(405);
           done();
         });
     });
@@ -138,9 +138,9 @@ describe('Store query tests:', function(){
     before(function(done){
       for (var i = 0; i < N; i++)
         addDocs();
-      setTimeout(function() {
-        done();
-      }, 200);
+        setTimeout(function() {
+          done();
+        }, 200);
     });
 
     it('#GET with `page=0` should response 200 with expected results (4-documents)', function(done){
@@ -165,6 +165,17 @@ describe('Store query tests:', function(){
           done();
         });
     });
+    it('#GET with `page=0, limit=2` should response 200 with expected results (2 documents)', function(done){
+      request
+        .get(url + '/stores/Scores?limit=2&page=0')
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(200);
+          res.body.should.have.property('results').and.be.an('array').and.have.length(2);
+          done();
+        });
+    });
     it('#GET with `page=1, limit=2` should response 200 with expected results (2 documents)', function(done){
       request
         .get(url + '/stores/Scores?limit=2&page=1')
@@ -176,20 +187,9 @@ describe('Store query tests:', function(){
           done();
         });
     });
-    it('#GET with `page=2, limit=2` should response 200 with expected results (2 documents)', function(done){
+    it('#GET with `page=2, limit=2` should response 200 with expected results (0 documents)', function(done){
       request
         .get(url + '/stores/Scores?limit=2&page=2')
-        .set('X-Auth-Token', token)
-        .accept('json')
-        .end(function(res){
-          res.status.should.be.equal(200);
-          res.body.should.have.property('results').and.be.an('array').and.have.length(2);
-          done();
-        });
-    });
-    it('#GET with `page=3, limit=2` should response 200 with expected results (0 documents)', function(done){
-      request
-        .get(url + '/stores/Scores?limit=2&page=3')
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
@@ -198,13 +198,13 @@ describe('Store query tests:', function(){
           done();
         });
     });
-    it('#GET with special chars (except _,-,@,!) in store should response 400', function(done){
+    it('#GET with special chars (except _,-,@,!) in store should response 405', function(done){
       request
         .get(url + '/sto*r^es/Scores?limit=2&page=1')
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(400);
+          res.status.should.be.equal(405);
           done();
         });
     });
