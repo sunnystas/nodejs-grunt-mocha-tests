@@ -107,7 +107,7 @@ describe('Subkit tests.', function(){
           res.body.should.have.property('$payload').and.exist;
           done();
         });
-      }, 20); //20ms write/read latency
+      }, 100); //100ms write/read latency
     });
     it('#GET with wrong "X-Auth-Token" header should response 401', function(done){
       request
