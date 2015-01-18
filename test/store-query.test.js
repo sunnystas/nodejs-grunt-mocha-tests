@@ -2,7 +2,7 @@ var request = require('superagent')
   , should = require('chai').should();
 var url = 'https://localhost:8080';
 var token = '66LOHAiB8Zeod1bAeLYW';
-var N = 4, limit0 = 0, limit2 = 2;
+var limit0 = 0, limit2 = 2;
 var docsKeys = [];
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -22,11 +22,11 @@ var addDocs = function() {
       });
 };
 
-
 describe('Store query tests:', function(){
   describe('Limit document results', function(){
+    var DocumentsInStore = 4;
     before(function(done){
-      for (var i = 0; i < N; i++)
+      for (var i = 0; i < DocumentsInStore; i++)
         addDocs();
       setTimeout(function() {
         done();
@@ -40,7 +40,7 @@ describe('Store query tests:', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(200);
-          res.body.should.have.property('results').and.be.an('array').and.have.length(N);
+          res.body.should.have.property('results').and.be.an('array').and.have.length(DocumentsInStore);
           res.body.results.should.have.deep.property('[0].$name');
           res.body.results.should.have.deep.property('[0].$store');
           res.body.results.should.have.deep.property('[0].$key');
@@ -50,14 +50,14 @@ describe('Store query tests:', function(){
           done();
         });
     });
-    it('#GET with `limit=0` should response 200 with expected results (N documents)', function(done){
+    it('#GET with `limit=0` should response 200 with expected results (DocumentsInStore documents)', function(done){
       request
         .get(url + '/stores/Scores?limit=0')
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(200);
-          res.body.should.have.property('results').and.be.an('array').and.have.length(N);
+          res.body.should.have.property('results').and.be.an('array').and.have.length(DocumentsInStore);
           res.body.results.should.have.deep.property('[0].$name');
           res.body.results.should.have.deep.property('[0].$store');
           res.body.results.should.have.deep.property('[0].$key');
@@ -135,14 +135,14 @@ describe('Store query tests:', function(){
   });
 
   describe('Documents pagination', function(){
+    var DocumentsInStore = 4;
     before(function(done){
-      for (var i = 0; i < N; i++)
+      for (var i = 0; i < DocumentsInStore; i++)
         addDocs();
         setTimeout(function() {
           done();
         }, 200);
     });
-
     it('#GET with `page=0` should response 200 with expected results (4-documents)', function(done){
       request
         .get(url + '/stores/Scores?page=0')
@@ -165,17 +165,6 @@ describe('Store query tests:', function(){
           done();
         });
     });
-    it('#GET with `page=0, limit=2` should response 200 with expected results (2 documents)', function(done){
-      request
-        .get(url + '/stores/Scores?limit=2&page=0')
-        .set('X-Auth-Token', token)
-        .accept('json')
-        .end(function(res){
-          res.status.should.be.equal(200);
-          res.body.should.have.property('results').and.be.an('array').and.have.length(2);
-          done();
-        });
-    });
     it('#GET with `page=1, limit=2` should response 200 with expected results (2 documents)', function(done){
       request
         .get(url + '/stores/Scores?limit=2&page=1')
@@ -187,9 +176,20 @@ describe('Store query tests:', function(){
           done();
         });
     });
-    it('#GET with `page=2, limit=2` should response 200 with expected results (0 documents)', function(done){
+    it('#GET with `page=2, limit=2` should response 200 with expected results (2 documents)', function(done){
       request
         .get(url + '/stores/Scores?limit=2&page=2')
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(200);
+          res.body.should.have.property('results').and.be.an('array').and.have.length(2);
+          done();
+        });
+    });
+    it('#GET with `page=3, limit=2` should response 200 with expected results (0 documents)', function(done){
+      request
+        .get(url + '/stores/Scores?limit=2&page=3')
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function(res){
@@ -245,6 +245,161 @@ describe('Store query tests:', function(){
         .end(function(){
           done();
         });
+    });
+  });
+
+  describe('#Documents without payload', function(){
+    var DocumentsInStore = 2;
+    before(function(done){
+      for (var i = 0; i < DocumentsInStore; i++)
+        addDocs();
+      setTimeout(function() {
+        done();
+      }, 200);
+    });
+    it('#GET should response 200 with expected results', function(done){
+      request
+        .get(url + '/stores/Scores?keysOnly=true')
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(200);
+          res.body.should.have.property('results').and.be.an('array').and.have.length(DocumentsInStore);
+          res.body.results.should.have.deep.property('[0].$name');
+          res.body.results.should.have.deep.property('[0].$store');
+          res.body.results.should.have.deep.property('[0].$key');
+          res.body.results.should.have.deep.property('[0].$version');
+          res.body.results.should.have.deep.property('[0].$timestamp');
+          res.body.results.should.not.have.deep.property('[0].$payload');
+          done();
+        });
+    });
+    it('#GET with special chars (except _,-,@,!) in store should response 400', function(done){
+      request
+        .get(url + '/sto*r^es/Scores?keysOnly=true')
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);
+          done();
+        });
+    });
+    it('#GET with special chars (except _,-,@,!) in key should response 400', function(done){
+      request
+        .get(url + '/stores/Sco^r&es?keysOnly=true')
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(400);
+          done();
+        });
+    });
+    it('#GET with wrong "X-Auth-Token" header should response 401', function(done){
+      request
+        .get(url + '/stores/Scores?keysOnly=true')
+        .set('X-Auth-Token', 'wrong_token')
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(401);
+          done();
+        });
+    });
+    it('#GET without "X-Auth-Token" header should response 401', function(done){
+      request
+        .get(url + '/stores/Scores?keysOnly=true')
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(401);
+          done();
+        });
+    });
+    after(function(done) {
+      request
+        .del(url + '/stores/Scores')
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(){
+          done();
+        });
+    });
+  });
+
+  describe('#Filter documents with *where* and JSON-Query', function() {
+    describe('##JSON-Query between', function () {
+      var DocumentsInStore = 6;
+      before(function (done) {
+        for (var i = 0; i < DocumentsInStore; i++)
+          addDocs();
+        setTimeout(function () {
+          done();
+        }, 200);
+      });
+
+      it('#GET should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"score":{"$gte":1000,"$lte":3000}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(DocumentsInStore);
+            res.body.results.should.have.deep.property('[0].$name');
+            res.body.results.should.have.deep.property('[0].$store');
+            res.body.results.should.have.deep.property('[0].$key');
+            res.body.results.should.have.deep.property('[0].$version');
+            res.body.results.should.have.deep.property('[0].$timestamp');
+            res.body.results.should.have.deep.property('[0].$payload');
+            done();
+          });
+      });
+      it('#GET with special chars (except _,-,@,!) in store should response 400', function (done) {
+        request
+          .get(url + '/sto*r^es/Scores?where={"score":{"$gte":1000,"$lte":3000}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(400);
+            done();
+          });
+      });
+      it('#GET with special chars (except _,-,@,!) in key should response 400', function (done) {
+        request
+          .get(url + '/stores/Sco^r&es?where={"score":{"$gte":1000,"$lte":3000}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(400);
+            done();
+          });
+      });
+      it('#GET with wrong "X-Auth-Token" header should response 401', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"score":{"$gte":1000,"$lte":3000}}')
+          .set('X-Auth-Token', 'wrong_token')
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(401);
+            done();
+          });
+      });
+      it('#GET without "X-Auth-Token" header should response 401', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"score":{"$gte":1000,"$lte":3000}}')
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(401);
+            done();
+          });
+      });
+      after(function (done) {
+        request
+          .del(url + '/stores/Scores')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function () {
+            done();
+          });
+      });
     });
   });
 

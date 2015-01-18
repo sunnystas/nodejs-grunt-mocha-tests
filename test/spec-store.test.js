@@ -452,7 +452,7 @@ describe('Subkit tests.', function(){
     });
   });
 
-  describe('#Conditional update of an existing document in `Scores`store', function(){
+  describe('#Conditional update of an existing document in `Scores` store', function(){
     var ifMatch = 0;
     beforeEach(function(done){
       request
@@ -565,7 +565,7 @@ describe('Subkit tests.', function(){
           done();
         });
     });
-    it('#PUT with "If-Match" < document.$version should response with 412 - Version conflict', function(done){
+    it('#PUT with "If-Match" < document.$version, the document version should be updated and the response body should contain the updated values', function(done){
       request
         .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
         .send({
@@ -577,12 +577,16 @@ describe('Subkit tests.', function(){
         .set('If-Match', ifMatch-1)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(412);
-          res.body.should.have.property('message').and.be.equal('Version conflict.');
+          res.status.should.be.equal(200);
+          res.body.should.have.property('message').and.be.equal('update accepted');
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;
           done();
         });
     });
-    it('#PUT with "If-Match" = document.$version, the document should be updated and the response body should contain the updated values', function(done){
+    it('#PUT with "If-Match" = document.$version, the document version should be updated and the response body should contain the updated values', function(done){
       request
         .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
         .send({
@@ -603,7 +607,7 @@ describe('Subkit tests.', function(){
           done();
         });
     });
-    it('#PUT with "If-Match" > document.$version, the document should be updated and the response body should contain the updated values', function(done){
+    it('#PUT with "If-Match" > document.$version, the document version should response 412-Precondition Failed', function(done){
       request
         .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
         .send({
@@ -615,12 +619,8 @@ describe('Subkit tests.', function(){
         .set('If-Match', ifMatch+1)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(202);
-          res.body.should.have.property('message').and.be.equal('update accepted');
-          res.body.should.have.property('$key').and.exist;
-          res.body.should.have.property('$version').and.exist;
-          res.body.should.have.property('$timestamp').and.exist;
-          res.body.should.have.property('$store').and.exist;          
+          res.status.should.be.equal(412);
+          res.body.should.have.property('message').and.be.equal('Precondition Failed.');
           done();
         });
     });
@@ -790,18 +790,22 @@ describe('Subkit tests.', function(){
           done();
         });
     });
-    it('#DELETE  with "If-Match" < document.$version should response with 412 - Version conflict', function(done){
+    it('#DELETE  with "If-Match" < document.$version, the document version should be updated and the response body should contain the updated values', function(done){
       request
         .del(url + '/stores/Scores/' + testDocKey)
         .set('X-Auth-Token', token)
         .set('If-Match', ifMatch-1)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(412);
+          res.status.should.be.equal(202);
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;
           done();
         });
     });
-    it('#DELETE the document with with "If-Match" = document.$version, the document version should be deleted', function(done){
+    it('#DELETE the document with with "If-Match" = document.$version, the document version should be updated and the response body should contain the updated values', function(done){
       request
         .del(url + '/stores/Scores/' + testDocKey)
         .set('X-Auth-Token', token)
@@ -809,19 +813,22 @@ describe('Subkit tests.', function(){
         .accept('json')
         .end(function(res){
           res.status.should.be.equal(202);
-          res.body.should.have.property('message').and.be.equal('delete accepted');
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;
           done();
         });
     });
-    it('#DELETE the document with with "If-Match" > document.$version, the document version should be deleted', function(done){
+    it('#DELETE the document with with "If-Match" > document.$version, the document version should response 412-Precondition Failed', function(done){
       request
         .del(url + '/stores/Scores/' + testDocKey)
         .set('X-Auth-Token', token)
         .set('If-Match', ifMatch+1)
         .accept('json')
         .end(function(res){
-          res.status.should.be.equal(202);
-          res.body.should.have.property('message').and.be.equal('delete accepted');          
+          res.status.should.be.equal(412);
+          res.body.should.have.property('message').and.be.equal('Precondition Failed');
           done();
         });
     });
