@@ -352,16 +352,41 @@ describe('Subkit tests.', function(){
           res.status.should.be.equal(400);
           done();
         });
-    }); 
+    });
+    after(function (done) {
+      request
+        .del(url + '/stores/Scores/ec8ffdf0-9b04-11e4^89d3-123b93f75cba')
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function () {
+          done();
+        });
+    });
   });
 
   describe('#Update an existing document in `Scores` store', function(){
-    it('#PUT with right token should succeed', function(done){
+    var testDocKey;
+    before(function (done) {
       request
-        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores/Scores')
         .send({
           'score': 18786,
           'playerName': "Karl",
+          'cheatMode': true
+        })
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function (res) {
+          testDocKey = res.body.$key;
+          done();
+        });
+    });
+    it('#PUT with right token should succeed', function(done){
+      request
+        .put(url + '/stores/Scores/' + testDocKey)
+        .send({
+          'score': 100000,
+          'playerName': "Karl1",
           'cheatMode': true
         })
         .set('X-Auth-Token', token)
@@ -378,7 +403,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT with wrong "X-Auth-Token" header should response 401', function(done){
       request
-        .put(url + '/stores/Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -393,7 +418,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT without "X-Auth-Token" header should response 401', function(done){
       request
-        .put(url + '/stores/Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -407,7 +432,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT without `Scores` path parameter should response 405', function(done){
       request
-        .put(url + '/stores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -422,7 +447,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT with space char in `Scores` path parameter should response 405', function(done){
       request
-        .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/Game Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -450,24 +475,46 @@ describe('Subkit tests.', function(){
           done();
         });
     });
+    after(function (done) {
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function () {
+          done();
+        });
+    });
   });
 
   describe('#Conditional update of an existing document in `Scores` store', function(){
     var ifMatch = 0;
+    var testDocKey;
     beforeEach(function(done){
       request
-        .get(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores/Scores')
+        .send({
+          'score': 18786,
+          'playerName': "Karl",
+          'cheatMode': true
+        })
         .set('X-Auth-Token', token)
-        .accept('json')        
-        .end(function(res){
-          res.body.should.have.property('$version');
-          ifMatch = res.body.$version;
-          done();
+        .accept('json')
+        .end(function (res) {
+          testDocKey = res.body.$key;
+          request
+            .get(url + '/stores/Scores/' + testDocKey)
+            .set('X-Auth-Token', token)
+            .accept('json')
+            .end(function(res){
+              res.body.should.have.property('$version');
+              ifMatch = res.body.$version;
+              done();
+            });
         });
     });
     it('#PUT with right token should succeed', function(done){
       request
-        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .put(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -488,7 +535,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT with wrong "X-Auth-Token" header should response 401', function(done){
       request
-        .put(url + '/stores/Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -504,7 +551,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT without "X-Auth-Token" header should response 401', function(done){
       request
-        .put(url + '/stores/Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -519,7 +566,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT without `Scores` path parameter should response 405', function(done){
       request
-        .put(url + '/stores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -535,7 +582,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT with space char in `Scores` path parameter should response 405', function(done){
       request
-        .put(url + '/stores/Game Scores/1c9f4c3e-86bb-11e4-b116-123b93f75cba')
+        .put(url + '/stores/Game Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -567,7 +614,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT with "If-Match" < document.$version, the document version should be updated and the response body should contain the updated values', function(done){
       request
-        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .put(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 12276,
           'playerName': "Karl",
@@ -588,7 +635,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT with "If-Match" = document.$version, the document version should be updated and the response body should contain the updated values', function(done){
       request
-        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .put(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -609,7 +656,7 @@ describe('Subkit tests.', function(){
     });
     it('#PUT with "If-Match" > document.$version, the document version should response 412-Precondition Failed', function(done){
       request
-        .put(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .put(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -740,8 +787,7 @@ describe('Subkit tests.', function(){
                 res.body.should.have.property('$version');
                 ifMatch = res.body.$version;
                 done();
-              });          
-
+              });
 
           }, 20); // write/read latency
           
