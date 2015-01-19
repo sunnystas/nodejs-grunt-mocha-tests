@@ -1,7 +1,8 @@
 var request = require('superagent')
   , chai = require('chai')
   , expect = chai.expect
-  , should = chai.should();
+  , should = chai.should()
+  , uuid = require('uuid');
 var url = 'https://localhost:8080';
 var token = '66LOHAiB8Zeod1bAeLYW';
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -227,10 +228,11 @@ describe('Subkit tests.', function(){
     });
   });
 
-  describe('#Create document in Scores-Store (Client-side generated document key)', function(){
+  describe.only('#Create document in Scores-Store (Client-side generated document key)', function(){
+    var testDocKey = uuid.v4();
     it('#POST with right path with right token should succeed', function(done){
       request
-        .post(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -245,13 +247,13 @@ describe('Subkit tests.', function(){
           res.body.should.have.property('$version').and.exist;
           res.body.should.have.property('$timestamp').and.exist;
           res.body.should.have.property('$store').and.exist;
-          res.body.should.have.property('$key').and.be.equal('ec8ffdf0-9b04-11e4-89d3-123b93f75cba');
+          res.body.should.have.property('$key').and.be.equal(testDocKey);
           done();
         });
     });
     it('#POST with wrong "X-Auth-Token" header should response 401', function(done){
       request
-        .post(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -266,7 +268,7 @@ describe('Subkit tests.', function(){
     });
     it('#POST without "X-Auth-Token" header should response 401', function(done){
       request
-        .post(url + '/stores/Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores/Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -295,7 +297,7 @@ describe('Subkit tests.', function(){
     });
     it('#POST with space char in store name should response 400', function(done){
       request
-        .post(url + '/stores/Game Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores/Game Scores/' + testDocKey)
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -310,7 +312,7 @@ describe('Subkit tests.', function(){
     });
     it('#POST with special chars in store name should response 400', function(done){
       request
-        .post(url + '/stores/Game^Scores/ec8ffdf0-9b04-11e4-89d3-123b93f75cba')
+        .post(url + '/stores/Game^Scores/' + testDocKey)
         .send({
           'score': '*18*76/*',
           'playerName': "/Karl**",
@@ -325,7 +327,7 @@ describe('Subkit tests.', function(){
     });
     it('#POST with space char in key name should response 400', function(done){
       request
-        .post(url + '/stores/Scores/ec8ffdf0-9b04 11e4 89d3-123b93f75cba')
+        .post(url + '/stores/Scores/' + testDocKey.replace('-', ' '))
         .send({
           'score': 1876,
           'playerName': "Karl",
@@ -340,7 +342,7 @@ describe('Subkit tests.', function(){
     });    
     it('#POST with special chars in key name should response 400', function(done){
       request
-        .post(url + '/stores/Scores/ec8ffdf0^9b04-11e4^89d3-123b93f75cba')
+        .post(url + '/stores/Scores' + testDocKey.replace('-', '^'))
         .send({
           'score': '*18*76/*',
           'playerName': "/Karl**",
@@ -355,7 +357,7 @@ describe('Subkit tests.', function(){
     });
     after(function (done) {
       request
-        .del(url + '/stores/Scores/ec8ffdf0-9b04-11e4^89d3-123b93f75cba')
+        .del(url + '/stores/Scores/' + testDocKey)
         .set('X-Auth-Token', token)
         .accept('json')
         .end(function () {
