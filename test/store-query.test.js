@@ -1,24 +1,21 @@
 var request = require('superagent')
-  , should = require('chai').should();
+  , should = require('chai').should()
+  , expect = require('chai').expect;
 var url = 'https://localhost:8080';
 var token = '66LOHAiB8Zeod1bAeLYW';
 var limit0 = 0, limit2 = 2;
-var docsKeys = [];
+var docs = require('./fixtures/documents.js').testDocuments;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-var addDocs = function() {
+var addDocs = function(doc) {
     request
       .post(url + '/stores/Scores')
-      .send({
-        'score': 1876,
-        'playerName': "Karl",
-        'cheatMode': false
-      })
+      .send(doc)
       .set('X-Auth-Token', token)
       .accept('json')
       .end(function(res){
-        docsKeys.push(res.body.key);
+        return res.body.key;
       });
 };
 
@@ -27,7 +24,7 @@ describe('Store query tests:', function(){
     var DocumentsInStore = 4;
     before(function(done){
       for (var i = 0; i < DocumentsInStore; i++)
-        addDocs();
+        addDocs(docs[i]);
       setTimeout(function() {
         done();
       }, 200);
@@ -138,7 +135,7 @@ describe('Store query tests:', function(){
     var DocumentsInStore = 4;
     before(function(done){
       for (var i = 0; i < DocumentsInStore; i++)
-        addDocs();
+        addDocs(docs[i]);
         setTimeout(function() {
           done();
         }, 200);
@@ -252,7 +249,7 @@ describe('Store query tests:', function(){
     var DocumentsInStore = 2;
     before(function(done){
       for (var i = 0; i < DocumentsInStore; i++)
-        addDocs();
+        addDocs(docs[i]);
       setTimeout(function() {
         done();
       }, 200);
@@ -326,29 +323,73 @@ describe('Store query tests:', function(){
 
   describe('#Filter documents with *where* and JSON-Query', function() {
     describe('##JSON-Query between', function () {
-      var DocumentsInStore = 6;
       before(function (done) {
-        for (var i = 0; i < DocumentsInStore; i++)
-          addDocs();
+        for (var i = 0; i < docs.length; i++)
+          addDocs(docs[i]);
         setTimeout(function () {
           done();
         }, 200);
       });
-
-      it('#GET should response 200 with expected results', function (done) {
+      it('#GET where={"score":{"$gte":1000,"$lte":3000}} should response 200 with expected results', function (done) {
         request
           .get(url + '/stores/Scores?where={"score":{"$gte":1000,"$lte":3000}}')
           .set('X-Auth-Token', token)
           .accept('json')
           .end(function (res) {
             res.status.should.be.equal(200);
-            res.body.should.have.property('results').and.be.an('array').and.have.length(DocumentsInStore);
-            res.body.results.should.have.deep.property('[0].$name');
-            res.body.results.should.have.deep.property('[0].$store');
-            res.body.results.should.have.deep.property('[0].$key');
-            res.body.results.should.have.deep.property('[0].$version');
-            res.body.results.should.have.deep.property('[0].$timestamp');
-            res.body.results.should.have.deep.property('[0].$payload');
+            res.body.should.have.property('results').and.be.an('array').and.have.length(7); //There are 7 documents with 1000 >= Score <= 3000 in fixture.
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.have.property('score').and.be.within(1000, 3000);
+            }
+            done();
+          });
+      });
+      it('#GET where={"score":{"$ne":1230}} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"score":{"$ne":1230}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(8);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.have.property('score').and.not.be.equal(1230);
+            }
+            done();
+          });
+      });
+      it('#GET where={"score":{"$gt":1000,"$lt":3000}} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"score":{"$gt":1000,"$lt":3000}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(6);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.have.property('score').and.be.gt(1000).and.be.lt(3000);
+            }
+            done();
+          });
+      });
+      it('#GET where={"playerName":{"$in":["Karl","Berta"]}} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"playerName":{"$in":["Karl","Berta"]}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(5);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.have.property('playerName');
+              var arr = [];
+              arr.push(res.body.results[i].$payload.playerName);
+              ['Karl', 'Berta'].should.include.members(arr);
+            }
             done();
           });
       });

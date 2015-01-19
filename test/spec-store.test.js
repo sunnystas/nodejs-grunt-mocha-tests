@@ -847,6 +847,7 @@ describe('Subkit tests.', function(){
           res.body.should.have.property('$version').and.exist;
           res.body.should.have.property('$timestamp').and.exist;
           res.body.should.have.property('$store').and.exist;
+          res.body.should.have.property('message').and.be.equal('delete accepted');
           done();
         });
     });
@@ -862,6 +863,7 @@ describe('Subkit tests.', function(){
           res.body.should.have.property('$version').and.exist;
           res.body.should.have.property('$timestamp').and.exist;
           res.body.should.have.property('$store').and.exist;
+          res.body.should.have.property('message').and.be.equal('delete accepted');
           done();
         });
     });
