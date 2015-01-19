@@ -228,7 +228,7 @@ describe('Subkit tests.', function(){
     });
   });
 
-  describe.only('#Create document in Scores-Store (Client-side generated document key)', function(){
+  describe('#Create document in Scores-Store (Client-side generated document key)', function(){
     var testDocKey = uuid.v4();
     it('#POST with right path with right token should succeed', function(done){
       request
