@@ -90,25 +90,22 @@ describe('Subkit tests.', function(){
           res.body.should.have.property('$timestamp').and.exist;
           res.body.should.have.property('$store').and.exist;
           key = res.body.$key;
-        });
 
-      //async operations
-      setTimeout(function(){
-        request
-        .get(url + '/stores/Scores/'+key)
-        .set('X-Auth-Token', token)
-        .accept('json')
-        .end(function(res){
-          res.status.should.be.equal(200);
-          res.body.should.have.property('$key').and.be.equal(key);
-          res.body.should.have.property('$name').and.be.equal('Scores');
-          res.body.should.have.property('$store').and.be.equal('Scores');
-          res.body.should.have.property('$version').and.exist;
-          res.body.should.have.property('$timestamp').and.exist;
-          res.body.should.have.property('$payload').and.exist;
-          done();
+          request
+            .get(url + '/stores/Scores/'+key)
+            .set('X-Auth-Token', token)
+            .accept('json')
+            .end(function(res) {
+              res.status.should.be.equal(200);
+              res.body.should.have.property('$key').and.be.equal(key);
+              res.body.should.have.property('$name').and.be.equal('Scores');
+              res.body.should.have.property('$store').and.be.equal('Scores');
+              res.body.should.have.property('$version').and.exist;
+              res.body.should.have.property('$timestamp').and.exist;
+              res.body.should.have.property('$payload').and.exist;
+              done();
+            });
         });
-      }, 100); //100ms write/read latency
     });
     it('#GET with wrong "X-Auth-Token" header should response 401', function(done){
       request
@@ -892,4 +889,114 @@ describe('Subkit tests.', function(){
         done();
       });
   });
+
+  describe('#Complex test for create + get + update + get + delete + get', function(){
+    var testDocKey = uuid.v4();
+    var doc = {
+      score: 24652,
+      playerName: "Karl",
+      cheatMode: false,
+      foo: 'bar;'
+    };
+    var newDoc = {
+      score: 100000,
+      playerName: "Karl1",
+      cheatMode: true
+    };
+    it('#Create document', function(done){
+      request
+        .post(url + '/stores/Scores/' + testDocKey)
+        .send(doc)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(201);
+          res.body.should.have.property('message').and.be.equal('created');
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;
+          res.body.should.have.property('$key').and.be.equal(testDocKey);
+          done();
+        });
+    });
+    it('#Get previously created document', function(done) {
+      request
+        .get(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function (res) {
+          res.status.should.be.equal(200);
+          res.body.should.have.property('$key').and.be.equal(testDocKey);
+          res.body.should.have.property('$name').and.be.equal('Scores');
+          res.body.should.have.property('$store').and.be.equal('Scores');
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$payload').and.exist;
+          for (var key in doc) {
+            res.body.should.have.property('$payload').and.have.property(key).and.be.equal(doc[key]);
+          }
+          done();
+        });
+    });
+    it('#Update previously created document', function(done){
+      request
+        .put(url + '/stores/Scores/' + testDocKey)
+        .send(newDoc)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function(res){
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('update accepted');
+          res.body.should.have.property('$key').and.exist;
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$store').and.exist;
+          done();
+        });
+    });
+    it('#Get previously updated document', function(done) {
+      request
+        .get(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function (res) {
+          res.status.should.be.equal(200);
+          res.body.should.have.property('$key').and.be.equal(testDocKey);
+          res.body.should.have.property('$name').and.be.equal('Scores');
+          res.body.should.have.property('$store').and.be.equal('Scores');
+          res.body.should.have.property('$version').and.exist;
+          res.body.should.have.property('$timestamp').and.exist;
+          res.body.should.have.property('$payload').and.exist;
+          for (var key in newDoc) {
+            res.body.should.have.property('$payload').and.have.property(key).and.be.equal(newDoc[key]);
+          }
+          expect(Object.keys(res.body.$payload)).have.length(Object.keys(newDoc).length);
+          done();
+        });
+    });
+    it('#Delete previously updated document', function(done) {
+      request
+        .del(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function (res) {
+          res.status.should.be.equal(202);
+          res.body.should.have.property('message').and.be.equal('delete accepted');
+          done();
+        });
+    });
+    it('#Get previously deleted document', function(done) {
+      request
+        .get(url + '/stores/Scores/' + testDocKey)
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function (res) {
+          res.status.should.be.equal(400);
+          done();
+        });
+    });
+  });
+
+
 });
