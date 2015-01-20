@@ -24,31 +24,36 @@ exports.testDocuments = [
     'score': 1230,
     'playerName': "Danald",
     'cheatMode': true,
-    'foo': "bar"
+    'foo': "baric"
   },
   {
     'score': 1800,
     'playerName': "Martin",
-    'cheatMode': true
+    'cheatMode': true,
+    'labels': [1,2,3,4]
   },
   {
     'score': 2000,
     'playerName': "Karl",
-    'cheatMode': true
+    'cheatMode': true,
+    'labels': [1,3,4]
   },
   {
     'score': 2145,
     'playerName': "Martin",
-    'cheatMode': true
+    'cheatMode': true,
+    'labels': [1,2]
   },
   {
     'score': 2560,
     'playerName': "Maria",
-    'cheatMode': false
+    'cheatMode': false,
+    'labels': [3,4]
   },
   {
     'score': 3150,
     'playerName': "Karl",
-    'cheatMode': false
+    'cheatMode': false,
+    'labels': [2,1,3,4]
   },
 ]
