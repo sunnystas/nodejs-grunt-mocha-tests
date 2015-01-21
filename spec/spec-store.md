@@ -213,9 +213,9 @@ Scenarios:
 * try PUT without `Scores` path parameter should reponse 400
 * try PUT with space char in `Scores` path parameter (e.g. `Game Scores`) should reponse 400
 * try PUT with another -not existing- document key should response 404-Not found
-* try to PUT the document with with "If-Match" < document.$version, the document version should be updated and the response body should contain the updated values
+* try to PUT the document with with "If-Match" < document.$version, the document version should response 412-Version conflict
 * try to PUT the document with with "If-Match" = document.$version, the document version should be updated and the response body should contain the updated values
-* try to PUT the document with with "If-Match" > document.$version, the document version should response 412-Precondition Failed
+* try to PUT the document with with "If-Match" > document.$version, the document version should be updated and the response body should contain the updated values
 
 #Delete documents
 
@@ -269,9 +269,9 @@ Scenarios:
 * try DELETE without `Scores` path parameter should reponse 400
 * try DELETE with space char in `Scores` path parameter (e.g. `Game Scores`) should reponse 400
 * try DELETE with another -not existing- document key should response 404-Not found
-* try to DELETE the document with with "If-Match" < document.$version, the document version should be updated and the response body should contain the updated values
+* try to DELETE the document with with "If-Match" < document.$version, the document version should response 412-Version conflict
 * try to DELETE the document with with "If-Match" = document.$version, the document version should be updated and the response body should contain the updated values
-* try to DELETE the document with with "If-Match" > document.$version, the document version should response 412-Precondition Failed
+* try to DELETE the document with with "If-Match" > document.$version, the document version should be updated and the response body should contain the updated values
 
 
 
