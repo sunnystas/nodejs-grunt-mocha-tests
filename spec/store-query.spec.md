@@ -40,7 +40,7 @@ Scenarios:
 * try GET should response 200 with expected results
 * try GET with `limit=0` should response 200 with expected results (4-documents)
 * try GET with `limit=2` should response 200 with expected results (2 documents)
-* try GET with special chars (except _,-,@,!) in store should response 400
+* try GET with special chars (except _,-,@,!) in store should response 405
 * try GET with special chars (except _,-,@,!) in key should response 400
 * try GET without "X-Auth-Token" header should response 401  
 * try GET with wrong "X-Auth-Token" header should response 401  
@@ -54,7 +54,7 @@ Scenarios:
 curl -X GET \
   -H "x-auth-token: 66LOHAiB8Zeod1bAeLYW" \
   -G \
-  --data-urlencode 'page=1' \
+  --data-urlencode 'page=0' \
   --data-urlencode 'limit=2' \
   https://localhost:8080/stores/Scores
 ```
@@ -64,7 +64,7 @@ curl -X GET \
 curl -X GET \
   -H "x-auth-token: 66LOHAiB8Zeod1bAeLYW" \
   -G \
-  --data-urlencode 'page=2' \
+  --data-urlencode 'page=1' \
   --data-urlencode 'limit=2' \
   https://localhost:8080/stores/Scores
 ```
@@ -94,9 +94,9 @@ Scenarios:
 * try GET should response 200 with expected results
 * try GET with `page=0` should response 200 with expected results (4-documents)
 * try GET with `page=-1` should response 200 with expected results (0-documents)
+* try GET with `page=0, limit=2` should response 200 with expected results (2 documents)
 * try GET with `page=1, limit=2` should response 200 with expected results (2 documents)
-* try GET with `page=2, limit=2` should response 200 with expected results (2 documents)
-* try GET with `page=3, limit=2` should response 200 with expected results (0 documents)
+* try GET with `page=2, limit=2` should response 200 with expected results (0 documents)
 * try GET with special chars (except _,-,@,!) in store should response 400
 * try GET with special chars (except _,-,@,!) in key should response 400
 * try GET without "X-Auth-Token" header should response 401  
