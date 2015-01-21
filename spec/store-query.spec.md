@@ -199,4 +199,31 @@ Scenarios:
 * try GET with wrong "X-Auth-Token" header should response 401  
 
 
+##Query - GroupBy 
 
+```
+curl -X GET \
+  -H "x-auth-token: 66LOHAiB8Zeod1bAeLYW" \
+  -G \
+  --data-urlencode 'groupby="name"' \
+  https://localhost:8080/stores/Scores
+```
+
+Status Code: 200  
+Errors:
+* 400 - Bad Request
+* 401 - Unauthorized
+* 405 - Method not found
+
+Expected result:
+
+* should be an object
+* should have properties grouped by document payload property name
+
+Scenarios:
+
+* try GET should response 200 with expected results
+* try GET with special chars (except _,-,@,!) in store should response 405
+* try GET with special chars (except _,-,@,!) in key should response 400
+* try GET without "X-Auth-Token" header should response 401  
+* try GET with wrong "X-Auth-Token" header should response 401  
