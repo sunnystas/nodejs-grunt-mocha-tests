@@ -56,4 +56,20 @@ exports.testDocuments = [
     'cheatMode': false,
     'labels': [2,1,3,4]
   },
+  {
+    'score': 4532,
+    'playerName': "Vasiliy ivanovich",
+    'cheatMode': false
+  }/*,
+  {
+    'score': 31500,
+    'playerName': "Karl",
+    'cheatMode': false,
+    'labels': [2,1,3,4,[7,8,9]]
+  }*//*,
+  {
+    'score': 14532,
+    'test field name': "Vasiliy ivanovich",
+    'cheatMode': false
+  }*/
 ]

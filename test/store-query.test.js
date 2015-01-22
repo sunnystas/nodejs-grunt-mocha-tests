@@ -321,15 +321,15 @@ describe('Store query tests:', function(){
     });
   });
 
-  describe('#Filter documents with *where* and JSON-Query', function() {
-    describe('##JSON-Query between', function () {
-      before(function (done) {
-        for (var i = 0; i < docs.length; i++)
-          addDocs(docs[i]);
-        setTimeout(function () {
-          done();
-        }, 200);
-      });
+  describe('#Filter documents with JSON-Query', function() {
+    before(function (done) {
+      for (var i = 0; i < docs.length; i++)
+        addDocs(docs[i]);
+      setTimeout(function () {
+        done();
+      }, 200);
+    });
+    describe('#Query - Where ', function() {
       it('#GET where={"score":{"$gte":1000,"$lte":3000}} should response 200 with expected results', function (done) {
         request
           .get(url + '/stores/Scores?where={"score":{"$gte":1000,"$lte":3000}}')
@@ -486,7 +486,8 @@ describe('Store query tests:', function(){
             for (var i = 0; i < res.body.results.length; i++) {
               res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
               res.body.results[i].$payload.should.have.property('foo').and.be.a('string');
-            }done();
+            }
+            done();
           });
       });
       it('#GET where={"labels":{"$all":[1,2]}} should response 200 with expected results', function (done) {
@@ -500,7 +501,8 @@ describe('Store query tests:', function(){
             for (var i = 0; i < res.body.results.length; i++) {
               res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
               res.body.results[i].$payload.should.have.property('labels').and.include.members([1, 2]);
-            }done();
+            }
+            done();
           });
       });
       it('#GET where={"$or":[{"labels":{"$all":[1,2]}},{"playerName":"Maria"}]} should response 200 with expected results', function (done) {
@@ -513,10 +515,11 @@ describe('Store query tests:', function(){
             res.body.should.have.property('results').and.be.an('array').and.have.length(4);
             for (var i = 0; i < res.body.results.length; i++) {
               res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
-            }done();
+            }
+            done();
           });
       });
-      it('#GET where={{"labels":{"$all":[1,2]}},{"playerName":"Martin"}} should response 200 with expected results', function (done) {
+      it.skip('#GET where={{"labels":{"$all":[1,2]}},{"playerName":"Martin"}} should response 200 with expected results', function (done) {
         request
           .get(url + '/stores/Scores?where={{"labels":{"$all":[1,2]}},{"playerName":"Martin"}}')
           .set('X-Auth-Token', token)
@@ -528,7 +531,8 @@ describe('Store query tests:', function(){
               res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
               res.body.results[i].$payload.should.have.property('labels').and.include.members([1, 2]);
               res.body.results[i].$payload.should.have.property('playerName').and.be.equal('Martin');
-            }done();
+            }
+            done();
           });
       });
       it('#GET where={"labels":{"$all":[1,2]},"playerName":"Martin"} should response 200 with expected results', function (done) {
@@ -543,7 +547,8 @@ describe('Store query tests:', function(){
               res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
               res.body.results[i].$payload.should.have.property('labels').and.include.members([1, 2]);
               res.body.results[i].$payload.should.have.property('playerName').and.be.equal('Martin');
-            }done();
+            }
+            done();
           });
       });
       it('#GET with special chars (except _,-,@,!) in store should response 405', function (done) {
@@ -585,15 +590,151 @@ describe('Store query tests:', function(){
             done();
           });
       });
-      after(function (done) {
+    });
+    describe('#Query - GroupBy ', function() {
+      it('#GET groupby="playerName" (field "playerName" exists in all docs) should response 200 with expected results', function (done) {
         request
-          .del(url + '/stores/Scores')
+          .get(url + '/stores/Scores?groupby=playerName')
           .set('X-Auth-Token', token)
           .accept('json')
-          .end(function () {
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.be.an('object');
+            for (var key in res.body) {
+              if (res.body.hasOwnProperty(key)) {
+                res.body[key].should.be.an('array');
+                for (var i = 0; i < res.body[key].length; i++) {
+                  res.body[key][i].should.be.an('object').and.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+                  res.body[key][i].$payload.should.have.property('playerName').and.be.equal(key);
+                }
+              }
+            }
             done();
           });
       });
+      it.skip('#GET groupby="test field name" (field "test field name" does not exists in all docs and includes spaces) should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?groupby="test field name"')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.be.an('object');
+            var field_was_found = false;
+            for (var key in res.body) {
+              if (res.body.hasOwnProperty(key)) {
+                res.body[key].should.be.an('array');
+                for (var i = 0; i < res.body[key].length; i++) {
+                  res.body[key][i].should.be.an('object').and.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+                  if (key == 'undefined') {
+                    res.body[key][i].$payload.should.not.have.property('test field name');
+                  } else {
+                    field_was_found = true;
+                    res.body[key][i].$payload.should.have.property('test field name').and.be.equal(key);
+                  }
+                }
+              }
+            }
+            field_was_found.should.be.equal(true);
+            done();
+          });
+      });
+      it.skip('#GET groupby="labels" (field "labels" is array) should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?groupby=labels')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.be.an('object');
+            console.log(res.body);
+            for (var key in res.body) {
+              if (res.body.hasOwnProperty(key)) {
+                res.body[key].should.be.an('array');
+                for (var i = 0; i < res.body[key].length; i++) {
+                  res.body[key][i].should.be.an('object').and.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+                  res.body[key][i].$payload.should.have.property('labels').and.include.members([key]);
+                }
+              }
+            }
+            done();
+          });
+      });
+      it('#GET groupby="foo" (field "foo" does not exists in all docs) should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?groupby=foo')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.be.an('object');
+            var field_was_found = false;
+            for (var key in res.body) {
+              if (res.body.hasOwnProperty(key)) {
+                res.body[key].should.be.an('array');
+                for (var i = 0; i < res.body[key].length; i++) {
+                  res.body[key][i].should.be.an('object').and.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+                  if (key == 'undefined') {
+                    res.body[key][i].$payload.should.not.have.property('foo');
+                  } else {
+                    field_was_found = true;
+                    res.body[key][i].$payload.should.have.property('foo').and.be.equal(key);
+                  }
+                }
+              }
+            }
+            field_was_found.should.be.equal(true);
+            done();
+          });
+      });
+      it('#GET with special chars (except _,-,@,!) in store should response 405', function (done) {
+        request
+          .get(url + '/sto*r^es/Scores?groupby=playerName')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(405);
+            done();
+          });
+      });
+      it('#GET with special chars (except _,-,@,!) in key should response 400', function (done) {
+        request
+          .get(url + '/stores/Sco^r&es?groupby=playerName')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(400);
+            done();
+          });
+      });
+      it('#GET with wrong "X-Auth-Token" header should response 401', function (done) {
+        request
+          .get(url + '/stores/Scores?groupby=playerName')
+          .set('X-Auth-Token', 'wrong_token')
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(401);
+            done();
+          });
+      });
+      it('#GET without "X-Auth-Token" header should response 401', function (done) {
+        request
+          .get(url + '/stores/Scores?groupby=playerName')
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(401);
+            done();
+          });
+      });
+    });
+    after(function (done) {
+      request
+        .del(url + '/stores/Scores')
+        .set('X-Auth-Token', token)
+        .accept('json')
+        .end(function () {
+          done();
+        });
     });
   });
 
