@@ -352,7 +352,7 @@ describe('Store query tests:', function(){
           .accept('json')
           .end(function (res) {
             res.status.should.be.equal(200);
-            res.body.should.have.property('results').and.be.an('array').and.have.length(8);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(9);
             for (var i = 0; i < res.body.results.length; i++) {
               res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
               res.body.results[i].$payload.should.have.property('score').and.not.be.equal(1230);
@@ -400,7 +400,7 @@ describe('Store query tests:', function(){
           .accept('json')
           .end(function (res) {
             res.status.should.be.equal(200);
-            res.body.should.have.property('results').and.be.an('array').and.have.length(5);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(6);
             for (var i = 0; i < res.body.results.length; i++) {
               res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
               res.body.results[i].$payload.should.have.property('playerName');
@@ -449,7 +449,7 @@ describe('Store query tests:', function(){
           .accept('json')
           .end(function (res) {
             res.status.should.be.equal(200);
-            res.body.should.have.property('results').and.be.an('array').and.have.length(10);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(11);
             done();
           });
       });
@@ -460,7 +460,7 @@ describe('Store query tests:', function(){
           .accept('json')
           .end(function (res) {
             res.status.should.be.equal(200);
-            res.body.should.have.property('results').and.be.an('array').and.have.length(10);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(11);
             done();
           });
       });
@@ -475,9 +475,24 @@ describe('Store query tests:', function(){
             done();
           });
       });
-      it('#GET where={"foo":{"$type":2}} should response 200 with expected results', function (done) {
+      it('#GET where={"typedField":{"$type":1}} should response 200 with expected results', function (done) {
         request
-          .get(url + '/stores/Scores?where={"foo":{"$type":2}}')
+          .get(url + '/stores/Scores?where={"typedField":{"$type":1}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(1);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.have.property('typedField').and.be.a('number');
+            }
+            done();
+          });
+      });
+      it('#GET where={"typedField":{"$type":2}} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"typedField":{"$type":2}}')
           .set('X-Auth-Token', token)
           .accept('json')
           .end(function (res) {
@@ -485,7 +500,52 @@ describe('Store query tests:', function(){
             res.body.should.have.property('results').and.be.an('array').and.have.length(2);
             for (var i = 0; i < res.body.results.length; i++) {
               res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
-              res.body.results[i].$payload.should.have.property('foo').and.be.a('string');
+              res.body.results[i].$payload.should.have.property('typedField').and.be.a('string');
+            }
+            done();
+          });
+      });
+      it('#GET where={"typedField":{"$type":3}} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"typedField":{"$type":3}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(3);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.have.property('typedField').and.be.a('object');
+            }
+            done();
+          });
+      });
+      it('#GET where={"typedField":{"$type":4}} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"typedField":{"$type":4}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(4);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.have.property('typedField').and.be.a('array');
+            }
+            done();
+          });
+      });
+      it('#GET where={"typedField1":{"$type":8}} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"typedField1":{"$type":8}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(7);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.have.property('typedField1').and.be.a('boolean');
             }
             done();
           });
@@ -547,6 +607,57 @@ describe('Store query tests:', function(){
               res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
               res.body.results[i].$payload.should.have.property('labels').and.include.members([1, 2]);
               res.body.results[i].$payload.should.have.property('playerName').and.be.equal('Martin');
+            }
+            done();
+          });
+      });
+      it('#GET where={{"playerName":"Karl"},{"foo": {"$exists": true}}} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"playerName":"Karl","foo":{"$exists": true}}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(1);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.have.property('foo');
+              res.body.results[i].$payload.should.have.property('playerName').and.be.equal('Karl');
+            }
+            done();
+          });
+      });
+      it('#GET where={"$or":[{"playerName":"Karl"},{"foo": {"$exists": true}}]} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"$or":[{"playerName":"Karl"},{"foo":{"$exists": true}}]}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(5);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.satisfy(function(payload) {
+                return payload.hasOwnProperty('foo') || payload.hasOwnProperty('playerName') && payload.playerName == 'Karl';
+              });
+            }
+            done();
+          });
+      });
+      it('#GET where={"$or":[{"playerName":"Karl"},{"foo": {"$exists": true}}],"score":500} should response 200 with expected results', function (done) {
+        request
+          .get(url + '/stores/Scores?where={"$or":[{"playerName":"Karl"},{"foo":{"$exists": true}}],"score":500}')
+          .set('X-Auth-Token', token)
+          .accept('json')
+          .end(function (res) {
+            res.status.should.be.equal(200);
+            res.body.should.have.property('results').and.be.an('array').and.have.length(1);
+            for (var i = 0; i < res.body.results.length; i++) {
+              res.body.results[i].should.include.keys('$name', '$store', '$key', '$version', '$timestamp', '$payload');
+              res.body.results[i].$payload.should.satisfy(function(payload) {
+                return payload.hasOwnProperty('foo') || payload.hasOwnProperty('playerName') && payload.playerName == 'Karl';
+              });
+              res.body.results[i].$payload.should.have.property('score').and.be.equal(500);
             }
             done();
           });
