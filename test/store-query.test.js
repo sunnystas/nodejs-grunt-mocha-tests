@@ -505,8 +505,7 @@ describe('Store query tests:', function(){
             done();
           });
       });
-      //BUG: pull request - https://github.com/eugeneware/jsonquery/pull/5
-      xit('#GET where={"typedField":{"$type":3}} should response 200 with expected results', function (done) {
+      it('#GET where={"typedField":{"$type":3}} should response 200 with expected results', function (done) {
         request
           .get(url + '/stores/Scores?where={"typedField":{"$type":3}}')
           .set('X-Auth-Token', token)
